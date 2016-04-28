@@ -163,7 +163,8 @@ body.loading .modal {
 /*#hand>li { float: left; }*/
 
 #hand {
-    height: 249px;
+    /*height: 249px;*/
+    height: 400px;
     width: 100%;
     position: fixed;
     bottom: 0;

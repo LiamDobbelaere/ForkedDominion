@@ -3,8 +3,8 @@
  */
 
 var active = false;
-//var handCards = ["Adventurer", "Bureaucrat", "Cellar", "Chancellor", "Chapel", "Copper", "Council_Room", "Curse", "Duchy", "Estate"];
-var handCards = ["Adventurer", "Bureaucrat", "Cellar", "Chancellor", "Chapel", "Copper", "Council_Room"];
+//var kaarten = ["Adventurer", "Bureaucrat", "Cellar", "Chancellor", "Chapel", "Copper", "Council_Room", "Curse", "Duchy", "Estate"];
+var kaarten = ["Adventurer", "Bureaucrat", "Cellar", "Chancellor", "Chapel", "Copper", "Council_Room"];
 var coinsTop = ["Coppertop", "Silvertop", "Goldtop", "Cursetop"];
 var StatesTop = ["provinceTop", "dutchyTop", "estateTop"];
 var kingdomCards = ["Militia", "Remodel", "Smithy", "Market", "Mine", "Cellar", "Moat", "Village", "Woodcutter", "Workshop"];
@@ -12,50 +12,27 @@ var kingdomCards = ["Militia", "Remodel", "Smithy", "Market", "Mine", "Cellar", 
 var huidigeAfbeelding = 1;
 var huidigeAfbeeldingTop = 1;
 
-var loadHandCards = function () {
-    $("#hand").empty();
+var toevoegenAfbeeldingen = function () {
+    var xoffset = 0;
+    var angle = 0;
 
-    var degreesPerCard = 90 / handCards.length;
-    var halfLength = handCards.length / 2;
-    var currentCard = 0;
+    for (var i = 0, len = kaarten.length; i < len; i++) {
+        angle = i * 4;
 
-    for (var i = halfLength - 1; i > 0; i--) {
-        var height = (halfLength - 1 - i) * 50;
-        var imageSource = "images/" + handCards[currentCard] + ".jpg";
-        //var html = '<li style="background-image: url(' + imageSource + ');">';
-        var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
-            'transform: rotate(-' + degreesPerCard * i + 'deg);' +
-            'margin-bottom: ' + height + 'px;">';
+        var imageSource = "images/" + kaarten[i] + ".jpg";
+        /*var html = '<li style="left: ' + xoffset + 'px; z-index: ' + (kaarten.length - i) + '; transform: rotate(' + angle + 'deg) translate(0px , ' + (angle * 5) + 'px)">';*/
+        /*var html = '<li style="left: ' + xoffset + 'px; z-index: ' + (kaarten.length - i) + ';">';*/
+        var html = '<li style="background-image: url(' + imageSource + ');">';
+
+
+        //html += '<figure><img alt="' + kaarten[i] + '" title="' + kaarten[i] + '" src="' + imageSource + '" />';
+        /*html += '<figcaption>' + kaarten[i] + '</figcaption></figure></li>';*/
 
         $('#hand').append(html);
 
-        currentCard += 1;
+        xoffset += 80;
     }
 
-    for (var i = 0; i < halfLength; i++) {
-        var height = (halfLength - 1 - i) * 50;
-        var imageSource = "images/" + handCards[currentCard] + ".jpg";
-        //var html = '<li style="background-image: url(' + imageSource + ');">';
-        var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
-            'transform: rotate(' + degreesPerCard * i + 'deg);' +
-            'margin-bottom: ' + height + 'px;">';
-        $('#hand').append(html);
-
-        currentCard += 1;
-    }
-};
-
-var redrawHandCards = function () {
-    var newCards = [];
-
-    $("#hand li").each(function () {
-        console.log($(this));
-        newCards.push($(this).attr("data-cardname"));
-    });
-
-    handCards = newCards;
-
-    loadHandCards();
 };
 
 
@@ -108,7 +85,7 @@ var toevoegenKingdomCards = function () {
 $(document).ready(function () {
     console.log("De verbinding werkt");
     $('#play').on('click', playGame);
-    loadHandCards();
+    toevoegenAfbeeldingen();
     $('#hand').hide();
     $('#coins').hide();
     $('#topstates').hide();
@@ -123,7 +100,7 @@ $(document).ready(function () {
 
     $("label[for=state_id]").parent().load("assets/fragments/states.html");
 
-    $(".register").on('click', function () {
+    $(".register").on('click', function(){
         $('#menu').hide();
         $("#form").show();
 
@@ -139,22 +116,14 @@ $(document).ready(function () {
 
     $("#hand").sortable({
         revert: true,
-        connectWith: "#cardsComeCenter",
-        update: function (event, ui) {
-            redrawHandCards();
-        }
+        connectWith: "#cardsComeCenter"
         //axis: "x"
     });
 
     $('#cardsComeCenter').sortable({
         handle: "none",
         placeholder: false,
-        items: "li:not('#cardsComeCenter li')",
-        update: function (event, ui) {
-            console.log(ui.item);
-            ui.item.css("transform", "none");
-            ui.item.css("margin-bottom", "0");
-        }
+        items: "li:not('#cardsComeCenter li')"
         /*placeholder: "placeholder"*/
     });
 
