@@ -15,34 +15,87 @@ var huidigeAfbeeldingTop = 1;
 var loadHandCards = function () {
     $("#hand").empty();
 
-    var degreesPerCard = 90 / handCards.length;
-    var halfLength = handCards.length / 2;
+    var degreesPerCard = 90 / (handCards.length - 1);
+    var currentDegrees = -45;
+    var height;
+    var prevheight = 0;
+    var previousDegrees = 0;
+    var nextDegrees;
+
+    if (handCards.length == 1) {
+        currentDegrees = 0;
+    }
+    else if (handCards.length == 2) {
+        degreesPerCard = 45;
+        currentDegrees = -22.5;
+    }
+
+    //var halfLength = handCards.length / 2;
     var currentCard = 0;
 
-    for (var i = halfLength - 1; i > 0; i--) {
-        var height = (halfLength - 1 - i) * 50;
-        var imageSource = "images/" + handCards[currentCard] + ".jpg";
-        //var html = '<li style="background-image: url(' + imageSource + ');">';
-        var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
-            'transform: rotate(-' + degreesPerCard * i + 'deg);' +
-            'margin-bottom: ' + height + 'px;">';
+    for (var i = 0; i < handCards.length; i++) {
 
+        if (i >= handCards.length / 2) {
+            height = prevheight - (Math.sin(Math.abs(nextDegrees) * (Math.PI / 180)) * 158); //158 is width
+        }
+        else {
+            height = prevheight + Math.sin(Math.abs(previousDegrees) * (Math.PI / 180)) * 158; //158 is width
+        }
+
+        var imageSource = "images/" + handCards[i] + ".jpg";
+        var html = '<li data-cardname="' + handCards[i] + '" style="background-image: url(' + imageSource + '); ' +
+            'transform: rotate(' + currentDegrees + 'deg);' +
+            'bottom: ' + height + 'px; left:' + (158 * i) + 'px;">';
+
+        console.log(height);
         $('#hand').append(html);
 
-        currentCard += 1;
+        previousDegrees = currentDegrees;
+        prevheight = height;
+        currentDegrees += degreesPerCard;
+        nextDegrees = previousDegrees + degreesPerCard;
     }
 
-    for (var i = 0; i < halfLength; i++) {
-        var height = (halfLength - 1 - i) * 50;
-        var imageSource = "images/" + handCards[currentCard] + ".jpg";
-        //var html = '<li style="background-image: url(' + imageSource + ');">';
-        var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
-            'transform: rotate(' + degreesPerCard * i + 'deg);' +
-            'margin-bottom: ' + height + 'px;">';
-        $('#hand').append(html);
+    /*for (var i = halfLength - 1; i > 0; i--) {
+     var height = (halfLength - 1 - i) * 50;
+     var imageSource = "images/" + handCards[currentCard] + ".jpg";
+     //var html = '<li style="background-image: url(' + imageSource + ');">';
+     var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
+     'transform: rotate(-' + degreesPerCard * i + 'deg);' +
+     'margin-bottom: ' + height + 'px;">';
+     if (handCards.length % 2 == 0)
+     {
+     var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
+     'transform: rotate(-' + degreesPerCard * (i + 1) + 'deg);' +
+     'margin-bottom: ' + height + 'px;">';
+     }
 
-        currentCard += 1;
-    }
+     $('#hand').append(html);
+
+     console.log("currentCard:" + currentCard);
+     console.log("halfLength:" + halfLength);
+     currentCard += 1;
+     }
+
+     for (var i = 0; i <= halfLength; i++) {
+     var height = (halfLength - 1 - i) * 50;
+     var imageSource = "images/" + handCards[currentCard] + ".jpg";
+     //var html = '<li style="background-image: url(' + imageSource + ');">';
+     var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
+     'transform: rotate(' + degreesPerCard * i + 'deg);' +
+     'margin-bottom: ' + height + 'px;">';
+     if (handCards.length % 2 == 0)
+     {
+     var html = '<li data-cardname="' + handCards[currentCard] + '" style="background-image: url(' + imageSource + '); ' +
+     'transform: rotate(' + degreesPerCard * (i + 1) + 'deg);' +
+     'margin-bottom: ' + height + 'px;">';
+     }
+     $('#hand').append(html);
+
+     console.log("currentCard:" + currentCard);
+     console.log("halfLength:" + halfLength);
+     currentCard += 1;
+     }*/
 };
 
 var redrawHandCards = function () {
@@ -154,6 +207,9 @@ $(document).ready(function () {
             console.log(ui.item);
             ui.item.css("transform", "none");
             ui.item.css("margin-bottom", "0");
+            ui.item.css("position", "relative");
+            ui.item.css("bottom", "0");
+            ui.item.css("left", "0");
         }
         /*placeholder: "placeholder"*/
     });
@@ -174,7 +230,6 @@ $(document).ready(function () {
     toevoegenAfbeeldingenTop();
     toevoegenStatesTop();
     toevoegenKingdomCards();
-
     /*objectDragen();*/
 });
 

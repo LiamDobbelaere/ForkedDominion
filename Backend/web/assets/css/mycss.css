@@ -170,6 +170,7 @@ body.loading .modal {
     bottom: 0;
     left: 0;
     padding: 0;
+
 }
 
 #hand li, #cardsComeCenter li {
@@ -181,13 +182,10 @@ body.loading .modal {
     display: inline-block;
     text-decoration: none;
     list-style-type: none;
-    left: 0;
-    margin: 0px;
+    margin: 0;
     background-size: contain;
     transition: width 5s;
     /*nee*/
-
-
 }
 
 #cardsComeCenter li {
@@ -195,12 +193,14 @@ body.loading .modal {
     width:110px;
     background-repeat: no-repeat;
 }
+
 #hand li {
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     -moz-box-shadow: 2px 2px 10px #000;
     -webkit-box-shadow: 2px 2px 10px #000;
-
+    position: absolute;
+    left: 0;
 }
 
 
