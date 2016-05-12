@@ -15,6 +15,11 @@
 </head>
 
 <body>
+
+<div id="card-info" class="hidden unselectable">
+    <img src="images/cards/cellar.jpg"/>
+</div>
+
 <div class="site-wrapper">
     <div class="site-wrapper-inner">
         <div class="cover-container">
@@ -34,11 +39,17 @@
                 </div>
             </div>
 
-            <div class="cf inner" id="gamewindow" style="display: none;">
+            <div class="cf inner unselectable" id="gamewindow" style="display: none;">
                 <div id="kingdomcards">
                     <ul>
 
                     </ul>
+                </div>
+
+                <div id="player-turninfo">
+                    <div class="info-sub" id="turn-actions"><span class="info">0</span>Actions</div>
+                    <div class="info-sub" id="turn-buys"><span class="info">0</span>Buys</div>
+                    <div class="info-sub" id="turn-coins"><span class="info">0</span>Coins</div>
                 </div>
 
                 <ul id="hand"></ul>
@@ -46,6 +57,8 @@
                 <ul class="topcoins" id="coins"></ul>
 
                 <ul class="topprov" id="topstates"></ul>
+
+                <button id="end-turn">End turn</button>
             </div>
 
             <div class="cf inner" id="enternickname" style="display: none;">
@@ -179,6 +192,7 @@
 
 <script type="text/javascript" src="assets/js/jquery-2.1.4.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery-ui-touchpunch.js"></script>
 <script type="text/javascript" src="assets/js/script.js"></script>
 
 </body>

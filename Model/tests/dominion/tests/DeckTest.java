@@ -1,89 +1,91 @@
 package dominion.tests;
 
+import dominion.Ability;
 import dominion.Card;
 import dominion.Deck;
 import dominion.GameEngine;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-
-import static org.junit.Assert.*;
-
 /**
  * Created by Sam on 21/04/2016.
  */
 public class DeckTest
 {
-    private GameEngine gameEngine;
+    private Deck deck;
+    private Deck discardPile;
+    private Deck hand;
+    private Ability[] abilities;
+    private Card testCard1;
+    private Card testCard2;
+    private Card testCard3;
 
     @Before
     public void setUp()
     {
-        try
-        {
-            gameEngine = new GameEngine();
-        }
-        catch (Exception ex)
-        {
+        deck = new Deck();
+        discardPile = new Deck();
+        hand = new Deck();
 
-        }
+        Ability copperAbility = new Ability(3, 1);
+        abilities = new Ability[1];
+        abilities[0] = copperAbility;
+
+        testCard1 = new Card("testCard1", 1, 1, 1, abilities);
+        testCard2 = new Card("testCard2", 2, 2, 2, abilities);
+        testCard3 = new Card("testCard3", 3, 3, 3, abilities);
     }
 
     @Test
-    public void testHand()
+    public void testDeck()
     {
-        Deck deck = new Deck(true, gameEngine);
+        deck.addCard(testCard1);
+        deck.addCard(testCard2);
 
-        deck.addCard(new Card(gameEngine.findCard("copper")));
-        deck.addCard(new Card(gameEngine.findCard("estate")));
-
-        assert(deck.getCard("copper").toString().equals("copper 1 0 0 3 1 "));
-        assert(deck.getCard("estate").toString().equals("estate 2 2 0 10 1 "));
+        assert(deck.findCard("testCard1").toString().equals("testCard1 1 1 1 3 1 "));
+        assert(deck.findCard("testCard2").toString().equals("testCard2 2 2 2 3 1 "));
     }
 
     @Test
     public void testTakeTopCard()
     {
-        Deck deck = new Deck(true, gameEngine);
-        Deck discardPile = new Deck(false, gameEngine);
+        Deck deck = new Deck();
+        Deck discardPile = new Deck();
 
         for (int i = 0; i < 7; i ++)
-            deck.addCard(new Card(gameEngine.findCard("copper")));
+            deck.addCard(new Card(testCard1));
         for (int i = 0; i < 3; i ++)
-            deck.addCard(new Card(gameEngine.findCard("estate")));
+            deck.addCard(new Card(testCard2));
 
         deck.shuffle();
 
-        Card topCard = deck.takeTopCard(discardPile);
-        Card copper = gameEngine.findCard("copper");
-        Card estate = gameEngine.findCard("estate");
+        hand.takeTopCard(deck, discardPile);
 
-        assert(topCard.equals(copper) || topCard.equals(estate));
+        assert(hand.getTopCard().equals(testCard1) || hand.getTopCard().equals(testCard2));
     }
 
     @Test
     public void testTakeTopCardWhenDeckIsEmpty()
     {
-        Deck deck = new Deck(true, gameEngine);
-        Deck discardPile = new Deck(false, gameEngine);
+        Deck deck = new Deck();
+        Deck discardPile = new Deck();
         Card lastCard = null;
 
         for (int i = 0; i < 7; i ++)
-            deck.addCard(new Card(gameEngine.findCard("copper")));
+            deck.addCard(new Card(testCard1));
 
         for (int i = 0; i < 3; i ++)
-            deck.addCard(new Card(gameEngine.findCard("estate")));
+            deck.addCard(new Card(testCard2));
 
-        Card smithy = new Card(gameEngine.findCard("smithy"));
-        discardPile.addCard(smithy);
+        discardPile.addCard(new Card(testCard3));
 
         for (int i = 0; i < 11; i++)
         {
-            lastCard = deck.takeTopCard(discardPile);
+            hand.takeTopCard(deck,discardPile);
         }
-        assert(lastCard.equals(smithy));
 
+        lastCard = hand.getTopCard();
+        assert(lastCard.equals(testCard3));
     }
 
 }

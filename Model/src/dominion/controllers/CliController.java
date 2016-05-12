@@ -14,6 +14,7 @@ public class CliController
     private Scanner scanner;
     private Lobby lobby;
     private Game game;
+    private boolean buying = false;
 
     public CliController()
     {
@@ -45,16 +46,25 @@ public class CliController
     public void setUpLobby()
     {
         lobby = null;
+        int amountOfPlayers = 2;
+        Account[] accounts = new Account[amountOfPlayers];
 
-        System.out.println("Player 1, what is your name?");
+        for (int playerNumber = 0; playerNumber < amountOfPlayers; playerNumber++)
+        {
+            System.out.print("Player "+(playerNumber+1)+", what is your name?\t");
+            String name = scanner.nextLine();
+            accounts[playerNumber] = new Account(name, 0);
+        }
+
+        /*System.out.print("Player 1, what is your name?\t");
         String name = scanner.nextLine();
-        Account player1 = new Account(name, 0);
+        Account account1 = new Account(name, 0);
 
-        System.out.println("Player 2, what is your name?");
+        System.out.print("Player 2, what is your name?\t");
         name = scanner.nextLine();
-        Account player2 = new Account(name, 0);
+        Account account2 = new Account(name, 0);*/
 
-        gameEngine.createLobby(player1, "mygame", "mypassword");
+        gameEngine.createLobby(accounts[0], "mygame", "mypassword");
 
         try
         {
@@ -65,7 +75,12 @@ public class CliController
             //never happens in the CLI
         }
 
-        lobby.addPlayer(player2);
+        //lobby.addPlayer(account2);
+
+        for (int playerNumber = 1; playerNumber < amountOfPlayers; playerNumber++)
+        {
+            lobby.addPlayer(accounts[playerNumber]);
+        }
 
     }
 
@@ -84,7 +99,7 @@ public class CliController
             switch (game.getPhase())
             {
                 case 0:
-                    actionPhase();
+                    actionPhase(currentPlayer);
                     break;
                 case 1:
                     buyPhase(currentPlayer);
@@ -94,20 +109,42 @@ public class CliController
         }
     }
 
-    private void actionPhase()
+    private void actionPhase(Player currentPlayer)
     {
-        System.out.println("ACTION phase");
+        printlnincolor(31, "ACTION phase");
+        printTable(currentPlayer);
+        String command = "";
+        Deck currentPlayerHand = currentPlayer.getHand();
+
+        Boolean hasActionCards = currentPlayerHand.containsActionCards();
+
+        printlnincolor(34, "You can now use your action cards");
+        System.out.println("Enter \"stop\" at any given time if you would like to stop using cards.");
+        System.out.println();
+
+        while (hasActionCards && currentPlayer.getBuys() != 0 && !command.equals("stop"))
+        {
+            printActionsBuysCoins(currentPlayer);
+
+            System.out.println("Your action cards:");
+            printCardsOfType(currentPlayerHand.getCards(), 3);
+            printCardsOfType(currentPlayerHand.getCards(), 4);
+            printCardsOfType(currentPlayerHand.getCards(), 5);
+
+            System.out.println("Which action card would you like to use?");
+
+            command = scanner.nextLine().toLowerCase();
+            game.playCard(command);
+            hasActionCards = currentPlayerHand.containsActionCards();
+        }
+
     }
 
     private void buyPhase(Player currentPlayer)
     {
-        System.out.println("BUY phase");
+        printlnincolor(31, "BUY phase");
 
-        printHand(currentPlayer);
-
-        printKingdomCards();
-
-        printVicTreasCards();
+        printTable(currentPlayer);
 
         useTreasureCards(currentPlayer);
 
@@ -116,7 +153,6 @@ public class CliController
 
     private void printHand(Player currentPlayer)
     {
-        System.out.println();
         System.out.println("Your hand:");
         System.out.println();
 
@@ -124,9 +160,10 @@ public class CliController
         {
             System.out.println(c.getName());
         }
+        System.out.println();
     }
 
-    private void printKingdomCards()
+    /*private void printKingdomCards(Player currentPlayer)
     {
         System.out.println();
         System.out.println("Available kingdom cards:");
@@ -137,18 +174,80 @@ public class CliController
 
             if (currentCard.getAmount() > 0)
             {
-                System.out.print(String.format("%-24s",
-                        currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
-            } else
+                if (currentCard.getCost() <= currentPlayer.getCoins())
+                {
+                    printInColor(32,String.format("%-24s",
+                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
+                }
+                else
+                {
+                    System.out.print(String.format("%-24s",
+                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
+                }
+                            } else
             {
                 System.out.print(String.format("%-24s", ""));
             }
 
             if (i == 4) System.out.println();
         }
+    }*/
+
+    private void printCards(Player currentPlayer, String type)
+    {
+        Card[] cards = new Card[0]; // won't cause trouble because will never happen.
+        if (type.equals("kingdom"))
+        {
+            System.out.println("Available kingdom cards:");
+            cards = game.getKingdomCards();
+        }
+        if (type.equals("fixed"))
+        {
+            System.out.println("Available coin cards:");
+            cards = game.getFixedCards();
+        }
+
+
+        for (int i = cards.length - 1; i >= 0; i--)
+        {
+            Card currentCard = cards[i];
+            Card prevCard = null;
+
+            if (currentCard.getAmount() > 0)
+            {
+                if ((currentCard.getCost() <= currentPlayer.getCoins()) && buying)
+                {
+                    printInColor(32, String.format("%-24s",
+                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
+                }
+                else
+                {
+                    System.out.print(String.format("%-24s",
+                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
+                }
+            } else
+            {
+                System.out.print(String.format("%-24s", ""));
+            }
+
+            if (type.equals("fixed"))
+            {
+                if (i == 4)
+                {
+                    System.out.println("");
+                    System.out.println("Available victory cards");
+                }
+            }
+            else
+            {
+                if (i == 5) System.out.println();
+            }
+        }
+        System.out.println();
+        System.out.println();
     }
 
-    private void printVicTreasCards()
+    /*private void printVicTreasCards(Player currentPlayer)
     {
         System.out.println();
         System.out.println();
@@ -169,8 +268,16 @@ public class CliController
 
             if (currentCard.getAmount() > 0)
             {
-                System.out.print(String.format("%-24s",
-                        currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
+                if (currentCard.getCost() <= currentPlayer.getCoins())
+                {
+                    printInColor(32, String.format("%-24s",
+                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
+                }
+                else
+                {
+                    System.out.print(String.format("%-24s",
+                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
+                }
             } else
             {
                 System.out.print(String.format("%-24s", ""));
@@ -180,21 +287,21 @@ public class CliController
         }
         System.out.println();
         System.out.println();
-    }
+    }*/
 
     private void useTreasureCards(Player currentPlayer)
     {
 
         String command = "";
-        Hand currentPlayerHand = currentPlayer.getHand();
+        Deck currentPlayerHand = currentPlayer.getHand();
         Boolean hasTreasureCards = currentPlayerHand.checkHandForType(1);
-        printInColor(31, "You can now use your treasure cards");
+        printlnincolor(34, "You can now use your treasure cards");
         System.out.println("Enter \"stop\" at any given time if you would like to stop using cards.");
         System.out.println();
 
         while (!command.equals("stop") && hasTreasureCards)
         {
-            System.out.println("Your coins:" + currentPlayer.getCoins());
+            printlnincolor(32, "Your coins:" + currentPlayer.getCoins());
             System.out.println("Your treasures:");
             currentPlayerHand = currentPlayer.getHand();
 
@@ -208,7 +315,7 @@ public class CliController
             {
                 try
                 {
-                    currentPlayer.playCard(command);
+                    game.playCard(command);
                 }
                 catch (Exception e)
                 {
@@ -222,25 +329,32 @@ public class CliController
 
     private void buyCards(Player currentPlayer)
     {
+        buying = true;
         String command = "";
-        System.out.println("You can now buy cards");
+        printlnincolor(34, "You can now buy cards");
         System.out.println("Enter \"stop\" at any given time if you would like to stop buying cards.");
+
         while (!command.equals("stop") && currentPlayer.getBuys() > 0)
         {
-            printKingdomCards();
-            printVicTreasCards();
+            printCards(currentPlayer, "kingdom");
+            printCards(currentPlayer, "fixed");
             System.out.println("Your buys:" + currentPlayer.getBuys());
             command = scanner.nextLine().toLowerCase();
-
-            try
+            if (!command.equals("stop"))
             {
-                currentPlayer.buyCard(command);
-            }
-            catch (Exception e)
-            {
-                System.out.println("You don't have " + command + " or no such card exists");
+                try
+                {
+                    game.buyCard(command);
+                    //currentPlayer.buyCard(command);
+                }
+                catch (Exception e)
+                {
+                    System.out.println("You can't buy a " + command + " card or no such card exists");
+                }
             }
         }
+        System.out.println();
+        buying = false;
     }
 
     private void printCardsOfType(ArrayList<Card> currentCards, int type)
@@ -249,16 +363,47 @@ public class CliController
         {
             if (c.getType() == type)
             {
-                System.out.println(c.getName());
+                printlnincolor(33, c.getName());
             }
         }
         System.out.println();
     }
 
+    private void printTable(Player currentPlayer)
+    {
+        printHand(currentPlayer);
+
+        printCards(currentPlayer, "kingdom");
+        printCards(currentPlayer, "fixed");
+    }
+
+    private void printActionsBuysCoins(Player currentPlayer)
+    {
+        printlnincolor(32, "Your actions:" + currentPlayer.getActions());
+        printlnincolor(32, "Your buys:" + currentPlayer.getBuys());
+        printlnincolor(32, "Your coins:" + currentPlayer.getCoins());
+    }
+
     private void printInColor(int color, String string)
     {
+        /*
+        30 black
+        31 red
+        32 green
+        33 yellow
+        34 blue
+        35 magenta
+        36 cyan
+        37 white
+         */
         String printColor = (char)27 + "[" + color + "m";
         String resetColor = (char)27 + "[0m";
-        System.out.println(printColor + string + resetColor);
+        System.out.print(printColor + string + resetColor);
+    }
+
+    private void printlnincolor(int color, String string)
+    {
+        printInColor(color, string);
+        System.out.println();
     }
 }

@@ -9,47 +9,42 @@ import java.util.Collections;
 public class Deck
 {
     private ArrayList<Card> cards;
-    private int victoryPoints;
-    private GameEngine gameEngine;
 
-    public Deck(Boolean isNewDeck, GameEngine gameEngine)
+    public Deck ()
     {
-        this.gameEngine = gameEngine;
         cards = new ArrayList<Card>();
-
-        /*if (isNewDeck)
-        {
-            Card copper = new Card(gameEngine.findCard("copper"));
-            copper.setAmount(1);
-            Card estate = new Card(gameEngine.findCard("estate"));
-            estate.setAmount(1);
-
-            for (int i = 0; i < 7; i++)
-            {
-                cards.add(copper);
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                cards.add(estate);
-            }
-            shuffle();
-        }*/
     }
 
-    public Card takeTopCard(Deck discardPile)
+    public void makeHand(Deck deck, Deck discardPile)
     {
-        if (cards.size() == 0)
+        cards = new ArrayList<Card>();
+        for (int i = 0; i < 5; i++)
         {
-            discardToDeck(discardPile);
+            this.takeTopCard(deck, discardPile);
+        }
+    }
+
+    public void takeTopCard(Deck deck, Deck discardPile)
+    {
+        ArrayList<Card> deckCards = deck.cards;
+        if (deckCards.size() == 0)
+        {
+            deck.discardToDeck(discardPile);
         }
 
-        Card topCard = cards.get(cards.size() - 1);
-        cards.remove(cards.size() - 1);
+        deckCards = deck.getCards();
+        Card topCard = deckCards.get(deckCards.size() - 1);
+        deckCards.remove(deckCards.size() - 1);
 
-        return topCard;
+        cards.add(topCard);
     }
 
-    public Card getCard(String name)
+    public Card getTopCard()
+    {
+        return cards.get(cards.size() - 1);
+    }
+
+    public Card findCard(String name)
     {
         Card card = null;
 
@@ -62,17 +57,7 @@ public class Deck
         return card;
     }
 
-    public ArrayList<Card> getCards()
-    {
-        return cards;
-    }
-
-    public int getVictoryPoints()
-    {
-        return victoryPoints;
-    }
-
-    public void calculatePoints()
+    public int calculatePoints()
     {
         int points = 0;
         for (int cardnr = 0; cardnr < cards.size(); cardnr++)
@@ -80,7 +65,7 @@ public class Deck
             //points += cards[cardnr].getValue();
         }
 
-        victoryPoints = points;
+        return points;
     }
 
     public void shuffle()
@@ -94,6 +79,33 @@ public class Deck
         discardPile.cards = this.cards;
         this.cards = temp;
         shuffle();
+    }
+
+    public Boolean checkHandForType(int type)
+    {
+        Boolean hasType = false;
+        for (Card c : cards)
+        {
+            if (c.getType() == type)
+            {
+                hasType = true;
+            }
+        }
+        return hasType;
+    }
+
+    public boolean containsActionCards()
+    {
+        boolean out = false;
+
+        for (int i = 0; i < cards.size(); i++)
+        {
+            int type = cards.get(i).getType();
+
+            if (type == 3 || type == 4 || type == 5) out = true;
+        }
+
+        return out;
     }
 
     public int size()
@@ -118,17 +130,14 @@ public class Deck
         cards.add(card);
     }
 
-    public boolean containsActionCards()
+    public void removeCard(Card c)
     {
-        boolean out = false;
-
-        for (int i = 0; i < cards.size(); i++)
-        {
-            int type = cards.get(i).getType();
-
-            if (type == 3 || type == 4 || type == 5) out = true;
-        }
-
-        return out;
+        cards.remove(c);
     }
+
+    public ArrayList<Card> getCards()
+    {
+        return cards;
+    }
+
 }
