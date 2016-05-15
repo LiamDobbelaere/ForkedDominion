@@ -1,9 +1,11 @@
 package dominion.controllers;
 
 import dominion.*;
+import dominion.exceptions.CardNotAvailableException;
 import dominion.exceptions.LobbyNotFoundException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 /**
  * Created by Sam on 28/04/2016.
@@ -47,24 +49,16 @@ public class CliController
     {
         lobby = null;
         int amountOfPlayers = 2;
-        Account[] accounts = new Account[amountOfPlayers];
+        String[] accounts = new String[amountOfPlayers];
 
         for (int playerNumber = 0; playerNumber < amountOfPlayers; playerNumber++)
         {
             System.out.print("Player "+(playerNumber+1)+", what is your name?\t");
             String name = scanner.nextLine();
-            accounts[playerNumber] = new Account(name, 0);
+            accounts[playerNumber] = name;
         }
 
-        /*System.out.print("Player 1, what is your name?\t");
-        String name = scanner.nextLine();
-        Account account1 = new Account(name, 0);
-
-        System.out.print("Player 2, what is your name?\t");
-        name = scanner.nextLine();
-        Account account2 = new Account(name, 0);*/
-
-        gameEngine.createLobby(accounts[0], "mygame", "mypassword");
+        gameEngine.createLobby(accounts[0], "mygame");
 
         try
         {
@@ -74,8 +68,6 @@ public class CliController
         {
             //never happens in the CLI
         }
-
-        //lobby.addPlayer(account2);
 
         for (int playerNumber = 1; playerNumber < amountOfPlayers; playerNumber++)
         {
@@ -95,7 +87,7 @@ public class CliController
         while (!game.getIsOver())
         {
             Player currentPlayer = game.findCurrentPlayer();
-            System.out.println(currentPlayer.getAccount().getName() + "'s turn starts.");
+            System.out.println(currentPlayer.getName() + "'s turn starts.");
             switch (game.getPhase())
             {
                 case 0:
@@ -134,7 +126,22 @@ public class CliController
             System.out.println("Which action card would you like to use?");
 
             command = scanner.nextLine().toLowerCase();
-            game.playCard(command);
+            int cardType = gameEngine.findCard(command).getType();
+            if (cardType == 3 || cardType == 4 || cardType == 5)
+            {
+                try
+                {
+                    game.playCard(command);
+                }
+                catch (CardNotAvailableException e)
+                {
+                    System.out.println("you don't have that card");
+                }
+            }
+            else
+            {
+                System.out.println(command + " is not an action card.");
+            }
             hasActionCards = currentPlayerHand.containsActionCards();
         }
 
@@ -163,36 +170,6 @@ public class CliController
         System.out.println();
     }
 
-    /*private void printKingdomCards(Player currentPlayer)
-    {
-        System.out.println();
-        System.out.println("Available kingdom cards:");
-
-        for (int i = 0; i < game.getKingdomCards().length; i++)
-        {
-            Card currentCard = game.getKingdomCards()[i];
-
-            if (currentCard.getAmount() > 0)
-            {
-                if (currentCard.getCost() <= currentPlayer.getCoins())
-                {
-                    printInColor(32,String.format("%-24s",
-                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
-                }
-                else
-                {
-                    System.out.print(String.format("%-24s",
-                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
-                }
-                            } else
-            {
-                System.out.print(String.format("%-24s", ""));
-            }
-
-            if (i == 4) System.out.println();
-        }
-    }*/
-
     private void printCards(Player currentPlayer, String type)
     {
         Card[] cards = new Card[0]; // won't cause trouble because will never happen.
@@ -211,7 +188,6 @@ public class CliController
         for (int i = cards.length - 1; i >= 0; i--)
         {
             Card currentCard = cards[i];
-            Card prevCard = null;
 
             if (currentCard.getAmount() > 0)
             {
@@ -246,48 +222,6 @@ public class CliController
         System.out.println();
         System.out.println();
     }
-
-    /*private void printVicTreasCards(Player currentPlayer)
-    {
-        System.out.println();
-        System.out.println();
-        System.out.println("Available victory/treasure cards:");
-
-        for (int i = game.getFixedCards().length - 1; i >= 0; i--)
-        {
-            Card currentCard = game.getFixedCards()[i];
-            Card prevCard;
-            try
-            {
-                prevCard = game.getFixedCards()[i-1];
-            }
-            catch (Exception e)
-            {
-                prevCard = null;
-            }
-
-            if (currentCard.getAmount() > 0)
-            {
-                if (currentCard.getCost() <= currentPlayer.getCoins())
-                {
-                    printInColor(32, String.format("%-24s",
-                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
-                }
-                else
-                {
-                    System.out.print(String.format("%-24s",
-                            currentCard.getName() + "(" + currentCard.getAmount() + "x/" + currentCard.getCost() + " c)"));
-                }
-            } else
-            {
-                System.out.print(String.format("%-24s", ""));
-            }
-
-            if (prevCard != null && prevCard.getType() != currentCard.getType()) System.out.println();
-        }
-        System.out.println();
-        System.out.println();
-    }*/
 
     private void useTreasureCards(Player currentPlayer)
     {
@@ -345,7 +279,6 @@ public class CliController
                 try
                 {
                     game.buyCard(command);
-                    //currentPlayer.buyCard(command);
                 }
                 catch (Exception e)
                 {
@@ -359,14 +292,17 @@ public class CliController
 
     private void printCardsOfType(ArrayList<Card> currentCards, int type)
     {
-        for (Card c : currentCards)
+        if (game.findCurrentPlayer().getHand().checkHandForType(type))
         {
-            if (c.getType() == type)
+            for (Card c : currentCards)
             {
-                printlnincolor(33, c.getName());
+                if (c.getType() == type)
+                {
+                    printlnincolor(33, c.getName());
+                }
             }
+            System.out.println();
         }
-        System.out.println();
     }
 
     private void printTable(Player currentPlayer)

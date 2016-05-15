@@ -20,7 +20,7 @@ public class GameEngine
 
     public GameEngine() throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException
     {
-        lobbies = new ArrayList<Lobby>();
+        lobbies = new ArrayList<>();
         cardDatabase = new Database();
         cardList = makeCardList();
     }
@@ -65,9 +65,14 @@ public class GameEngine
         return cardList;
     }
 
-    public void createLobby(Account account, String name, String password)
+    public void createLobby(String playerName, String lobbyName)
     {
-        lobbies.add(new Lobby(account, name, password, cardList));
+        lobbies.add(new Lobby(playerName, lobbyName, cardList));
+    }
+
+    public void createLobby(String playerName, String lobbyName, String cardSet)
+    {
+        lobbies.add(new Lobby(playerName, lobbyName, cardSet, cardList));
     }
 
     public Lobby findLobby(String name) throws LobbyNotFoundException
@@ -92,4 +97,17 @@ public class GameEngine
         return cardList.get(name);
     }
 
+    public String[] retrieveCardSets()
+    {
+        DatabaseResults results = cardDatabase.executeQuery("SELECT name FROM Cardset");
+
+        String[] cardSets = new String[results.size()];
+
+        for (int i = 0; i < results.size(); i++)
+        {
+            cardSets[i] = results.getRecord(i).getValue("name");
+        }
+
+        return cardSets;
+    }
 }

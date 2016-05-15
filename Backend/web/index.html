@@ -20,6 +20,16 @@
     <img src="images/cards/cellar.jpg"/>
 </div>
 
+<div id="chat" class="visible">
+    <ul class="message-list">
+
+    </ul>
+    <div class="compose-message">
+        <label for="chat-message">Chat:</label>
+        <input type="text" id="chat-message" class="chat-message"/>
+    </div>
+</div>
+
 <div class="site-wrapper">
     <div class="site-wrapper-inner">
         <div class="cover-container">
@@ -66,10 +76,18 @@
                     <label for="nickname">Nickname: </label>
                     <input type="text" class="nickname" id="nickname"/>
                 </p>
+
                 <p>
                     <label for="lobbyname">Lobby name: </label>
                     <input type="text" class="lobbyname" id="lobbyname"/>
                 </p>
+                <p>
+                    <label for="cardset">Card set:</label>
+                    <select name="cardset" id="cardset">
+                        <option>Loading...</option>
+                    </select>
+                </p>
+
                 <a href="#" id="createlobby">Create lobby</a>
                 <a href="#" id="joinlobby">Join lobby</a>
             </div>
@@ -193,6 +211,9 @@
 <script type="text/javascript" src="assets/js/jquery-2.1.4.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-ui-touchpunch.js"></script>
+<script type="text/javascript" src="assets/js/socket.io.js"></script>
+<script type="text/javascript" src="assets/js/chat-client.js"></script>
+<script type="text/javascript" src="assets/js/ajax.js"></script>
 <script type="text/javascript" src="assets/js/script.js"></script>
 
 </body>

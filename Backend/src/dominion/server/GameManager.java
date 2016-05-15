@@ -91,20 +91,24 @@ public class GameManager extends javax.servlet.http.HttpServlet
 
             switch (command)
             {
+                case "getcardsets":
+                {
+                    String[] cardSets = gameEngine.retrieveCardSets();
+                    writer.print(gson.toJson(cardSets));
+                }
+                break;
                 case "createlobby":
                 {
-                    Account newAccount = new Account(nickname, 0);
+                    String cardSet = request.getParameter("cardset");
 
-                    gameEngine.createLobby(newAccount, lobbyName, "");
+                    gameEngine.createLobby(nickname, lobbyName, cardSet);
 
                     enableBuying.put(lobbyName, false);
                 }
                 break;
                 case "joinlobby":
                 {
-                    Account newAccount = new Account(nickname, 0);
-
-                    lobby.addPlayer(newAccount);
+                    lobby.addPlayer(nickname);
                     lobby.startGame();
                 }
                 break;
@@ -146,10 +150,17 @@ public class GameManager extends javax.servlet.http.HttpServlet
 
                     if (isMyTurn)
                     {
-                        game.playCard(cardName);
+                        try
+                        {
+                            game.playCard(cardName);
+                        }
+                        catch (CardNotAvailableException ex)
+                        {
+                            ex.printStackTrace();
+                        }
                         //currentPlayer.playCard(cardName);
 
-                        if (!currentPlayer.getHand().checkHandForType(1))
+                        if (game.getPhase() == 1 && !currentPlayer.getHand().checkHandForType(1))
                         {
                             enableBuying.put(lobbyName, true);
                         }
@@ -167,6 +178,7 @@ public class GameManager extends javax.servlet.http.HttpServlet
                 break;
                 case "retrievekingdomcards":
                 {
+
                     HashMap<String, Card[]> cardsArray = new HashMap<>();
 
                     cardsArray.put("kingdomCards", game.getKingdomCards());

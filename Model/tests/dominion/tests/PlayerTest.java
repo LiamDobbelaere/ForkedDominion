@@ -1,6 +1,5 @@
 package dominion.tests;
 
-import dominion.Account;
 import dominion.Game;
 import dominion.GameEngine;
 import dominion.Player;
@@ -15,12 +14,15 @@ import static org.junit.Assert.*;
 public class PlayerTest
 {
     private Game game;
+    private TestHelper testHelper;
 
     @Before
     public void setUp()
     {
-        Account[] accounts = {new Account("bob", 0), new Account("alice", 0)};
-        game = new Game(accounts, "default", TestHelper.getTestCardList());
+        testHelper = new TestHelper();
+
+        String[] accounts = {"bob", "alice"};
+        game = new Game(accounts, testHelper.getDefaultKingdomCards(), testHelper.getTestCardList());
     }
 
     @Test

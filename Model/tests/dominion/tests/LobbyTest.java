@@ -11,17 +11,17 @@ import static org.junit.Assert.*;
  */
 public class LobbyTest
 {
-    Account playerOne;
-    Account playerTwo;
+    String playerOne;
+    String playerTwo;
     Lobby lobby;
 
     @Before
     public void setUp()
     {
-        playerOne = new Account("bob", 10);
-        playerTwo = new Account("alice", 20);
+        playerOne = "bob";
+        playerTwo = "alice";
 
-        lobby = new Lobby(playerOne, "mygame", "mypassword", null);
+        lobby = new Lobby(playerOne, "mygame", null);
     }
 
     @Test
@@ -30,8 +30,8 @@ public class LobbyTest
 
         lobby.addPlayer(playerTwo);
 
-        assert(lobby.getPlayer("bob").toString().equals("bob 10"));
-        assert(lobby.getPlayer("alice").toString().equals("alice 20"));
+        assert(lobby.getPlayer("bob").equals("bob"));
+        assert(lobby.getPlayer("alice").equals("alice"));
     }
 
     @Test
