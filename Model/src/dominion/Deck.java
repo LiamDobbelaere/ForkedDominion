@@ -15,32 +15,39 @@ public class Deck
         cards = new ArrayList<>();
     }
 
-    public void makeHand(Deck deck, Deck discardPile)
+    public void makeHand(Deck hand, Deck discardPile)
     {
-        cards = new ArrayList<>();
+        hand.cards = new ArrayList<>();
         for (int i = 0; i < 5; i++)
         {
-            this.takeTopCard(deck, discardPile);
+            this.takeTopCard(hand, discardPile);
         }
     }
 
-    public void takeTopCard(Deck deck, Deck discardPile)
+    public void takeTopCard(Deck hand, Deck discardPile) //ALWAYS USE ON deck!
     {
-        ArrayList<Card> deckCards = deck.cards;
-        if (deckCards.size() == 0)
+        putTopCardIn(hand.getCards(), discardPile);
+    }
+
+    public void putTopCardIn (ArrayList<Card> cardList, Deck discardPile) //ALWAYS USE ON deck!
+    {
+        if (size() == 0)
         {
-            deck.discardToDeck(discardPile);
+            discardToDeck(discardPile);
         }
 
-        deckCards = deck.getCards();
-        Card topCard = deckCards.get(deckCards.size() - 1);
-        deckCards.remove(deckCards.size() - 1);
+        Card topCard = getTopCard(discardPile);
+        cards.remove(size() - 1);
 
-        cards.add(topCard);
+        cardList.add(topCard);
     }
 
-    public Card getTopCard()
+    public Card getTopCard(Deck discardPile)
     {
+        if (size() == 0)
+        {
+            discardToDeck(discardPile);
+        }
         return cards.get(cards.size() - 1);
     }
 
@@ -100,9 +107,10 @@ public class Deck
 
         for (int i = 0; i < cards.size(); i++)
         {
-            int type = cards.get(i).getType();
-
-            if (type == 3 || type == 4 || type == 5) out = true;
+            if (cards.get(i).isActionCard())
+            {
+                out = true;
+            }
         }
 
         return out;

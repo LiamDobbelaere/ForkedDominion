@@ -1,5 +1,10 @@
 # DominionProjectSYTE
 
+## Issues
+- Enkel kingdomcards beveiligd
+- Duurdere kaarten kunnen gekocht worden als workshop actief is
+- Amount checken voor chat 
+
 ## SQL Database
 Card types reference:
 

@@ -3,59 +3,42 @@ package dominion;
 import dominion.exceptions.CardNotAvailableException;
 import dominion.persistence.Database;
 import dominion.persistence.DatabaseResults;
+import dominion.util.Condition;
+import dominion.util.ConditionList;
+import dominion.util.GainCardCondition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by Digaly on 23/03/2016.
  */
 public class Game
 {
-    //private Card[] kingdomCards;
     private Card[] cards;
-    private ArrayList<Card> cardsOnTable;
+    private CopyOnWriteArrayList<Card> cardsOnTable;
     private int currentPlayerIndex;
     private Player[] players;
     private int phase;
     private boolean isOver;
     private HashMap<String, Card> cardList;
-    private Database database;
-
-    public Game(String[] playerNames, String kingdomCardSet, HashMap<String, Card> cardList)
-    {
-        this.cardList = cardList;
-        initDatabase();
-        makeCards(kingdomCardSet, playerNames.length);
-        initGameState(playerNames);
-    }
+    private ConditionList conditionsList;
+    private Revealer revealer;
 
     public Game(String[] playerNames, String[] kingdomCards, HashMap<String, Card> cardList)
     {
-        this.cardList = cardList;
-        initDatabase();
+        this.setCardList(cardList);
         makeCards(kingdomCards, playerNames.length);
         initGameState(playerNames);
+        revealer = new Revealer();
+        conditionsList = new ConditionList();
     }
 
     private void initGameState(String[] playerNames)
     {
-        players = new Player[playerNames.length];
-        cardsOnTable = new ArrayList<>();
-
-        for (int i = 0; i < playerNames.length; i++)
-        {
-            Player newPlayer = new Player();
-
-            newPlayer.setName(playerNames[i]);
-
-            createStartingDeck(newPlayer);
-
-            makeHand(newPlayer);
-
-            players[i] = newPlayer;
-        }
+        addPlayers(playerNames);
 
         currentPlayerIndex = pickRandomPlayer();
         phase = -1;
@@ -63,16 +46,28 @@ public class Game
         advancePhase();
     }
 
-    private void initDatabase()
+    private void addPlayers(String[] playerNames)
     {
-        try
+        players = new Player[playerNames.length];
+        cardsOnTable = new CopyOnWriteArrayList<>();
+
+        for (int i = 0; i < playerNames.length; i++)
         {
-            database = new Database();
+            Player newPlayer = new Player();
+
+            newPlayer.setName(playerNames[i]);
+
+            setUpPlayerCards(newPlayer);
+
+            players[i] = newPlayer;
         }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-        }
+    }
+
+    private void setUpPlayerCards(Player newPlayer)
+    {
+        createStartingDeck(newPlayer);
+
+        makeHand(newPlayer);
     }
 
     private int pickRandomPlayer()
@@ -84,9 +79,17 @@ public class Game
     {
         phase++;
 
-        if (phase == 0 && !findCurrentPlayer().hasActionCards()) phase++;
+        if (phase == 0 && !findCurrentPlayer().hasActionCards())
+        {
+            phase++;
+        }
 
-        if (phase >= 2)
+        /*if (phase == 2 && findBuyableCards().size() == 0)
+        {
+            phase++;
+        }*/
+
+        if (phase >= 3)
         {
             advancePlayer();
         }
@@ -103,12 +106,32 @@ public class Game
             currentPlayerIndex = 0;
         }
 
+
         findCurrentPlayer().setBuys(1);
         findCurrentPlayer().setActions(1);
-        findCurrentPlayer().setCoins(0);
+        findCurrentPlayer().setCoins(10);
 
         phase = -1;
         advancePhase();
+        if (isOver)
+        {
+            this.setPhase(4);
+        }
+    }
+
+    public Player getWinner()
+    {
+        int highestVpValue = 0;
+        Player currentWinner = null;
+        for (Player player: players)
+        {
+            if(player.getTotalVictoryPoints() > highestVpValue )
+            {
+                highestVpValue = player.getTotalVictoryPoints();
+                currentWinner = player;
+            }
+        }
+        return currentWinner;
     }
 
     public int getPhase()
@@ -121,32 +144,11 @@ public class Game
         return players[currentPlayerIndex];
     }
 
-    private void makeCards(String name, int playerCount)
-    {
-        String[] kingdomCardsInSet = getKingdomCardsIn(name);
-        makeCards(kingdomCardsInSet, playerCount);
-    }
-
     private void makeCards(String[] kingdomCards, int playerCount)
     {
         cards = new Card[17];
         addKingdomCardsToCards(kingdomCards);
         addFixedCardsToCards(playerCount);
-    }
-
-
-    private String[] getKingdomCardsIn(String cardSet)
-    {
-        DatabaseResults results = database.executeQuery("SELECT cardName FROM CardsetCard WHERE cardset = ?", cardSet);
-
-        String[] cardNames = new String[results.size()];
-
-        for (int i = 0; i < results.size(); i++)
-        {
-            cardNames[i] = results.getRecord(i).getValue("cardName");
-        }
-
-        return cardNames;
     }
 
     private void addKingdomCardsToCards(String[] kingdomCardsInSet)
@@ -158,28 +160,6 @@ public class Game
             cards[i].setAmount(10);
         }
     }
-
-    /*private Card[] cardSet(String name)
-    {
-        String[] cardSetNames = null;
-        Card[] cardSet = new Card[10];
-        if (name.equals("default"))
-        {
-            cardSetNames = new String[]{"cellar", "market", "militia", "mine", "moat", "remodel", "smithy", "village", "woodcutter", "workshop",};
-        }
-        else if (name.equals("testWitch"))
-        {
-            cardSetNames = new String[]{"cellar", "market", "militia", "mine", "moat", "remodel", "witch", "village", "woodcutter", "workshop",};
-        }
-
-        for (int i = 0; i < cardSetNames.length; i++)
-        {
-            Card card = cardList.get(cardSetNames[i]);
-            cardSet[i] = new Card(card);
-            cardSet[i].setAmount(10);
-        }
-        return cardSet;
-    }*/
 
     private void addFixedCardsToCards(int playerCount)
     {
@@ -204,7 +184,7 @@ public class Game
             cards[12].setAmount(12);
         }
 
-        cards[13].setAmount(playerCount * 10 - 10);
+        cards[13].setAmount((playerCount - 1) * 10);
         cards[14].setAmount(30);
         cards[15].setAmount(40);
         cards[16].setAmount(60);
@@ -250,18 +230,50 @@ public class Game
             cardsOnTable.add(currentCard);
             currentPlayer.getHand().removeCard(currentCard);
 
-            int cardType = currentCard.getType();
-
-            if (cardType == 3 || cardType == 4 || cardType == 5)
+            if (currentCard.isActionCard())
                 currentPlayer.setActions(currentPlayer.getActions() - 1);
 
             if (phase == 0)
             {
-                if (!currentPlayer.getHand().containsActionCards() || currentPlayer.getActions() == 0)
+
+                if ((!currentPlayer.getHand().containsActionCards() || currentPlayer.getActions() == 0) && conditionsList.size() == 0)
+                    advancePhase();
+            }
+            else if (phase == 1)
+            {
+                if (!currentPlayer.getHand().checkHandForType(1))
                     advancePhase();
             }
         }
         else throw new CardNotAvailableException();
+    }
+
+    public void trashCardFromPlayer(Player player, Card card)
+    {
+        player.setValueOfLastTrashedCard(card.getCost());
+        player.getHand().removeCard(card);
+    }
+
+    public void playTreasures()
+    {
+        Player currentPlayer = findCurrentPlayer();
+
+        ArrayList<Card> handClone = (ArrayList<Card>) currentPlayer.getHand().getCards().clone();
+
+        for (Card card : handClone)
+        {
+            if (card.getType() == 1)
+            {
+                try
+                {
+                    playCard(card.getName());
+                }
+                catch (CardNotAvailableException e)
+                {
+                    //Do nothing
+                }
+            }
+        }
     }
 
     public void executeCardAbilities(Card currentCard) throws CardNotAvailableException
@@ -270,7 +282,7 @@ public class Game
 
         for (Ability ability : cardAbilities)
         {
-            if (ability.getId() < 6 || ability.getId() == 12)
+            if (ability.getId() < 6 || ability.getId() == 12 || ability.getId() == 15 || ability.getId() == 9 || ability.getId() >= 25)
             {
                 ability.doAbility(this);
             }
@@ -278,19 +290,35 @@ public class Game
             {
                 ability.doAbility(this, currentCard);
             }
+            else if (ability.getId() == 13 || ability.getId() == 14 || ability.getId() == 19)
+            {
+                ability.doAbility(this);
+            }
         }
     }
 
     public void buyCard(String cardName) throws CardNotAvailableException
     {
-        int cardCost = retrieveCard(cardName).getCost();
+        Card thisCard = retrieveCard(cardName);
+        int cardCost = thisCard.getCost();
         Player currentPlayer = findCurrentPlayer();
 
-        if (currentPlayer.getCoins() >= cardCost && currentPlayer.getBuys() > 0)
+        boolean hasGainCardCondition = getConditionsList().hasConditionOfType(GainCardCondition.class);
+
+
+        if ((currentPlayer.getCoins() >= cardCost && currentPlayer.getBuys() > 0) || hasGainCardCondition)
         {
             addCard(cardName);
-            currentPlayer.setBuys(currentPlayer.getBuys() - 1);
-            currentPlayer.setCoins(currentPlayer.getCoins() - cardCost);
+
+            if (!hasGainCardCondition)
+            {
+                currentPlayer.setBuys(currentPlayer.getBuys() - 1);
+                currentPlayer.setCoins(currentPlayer.getCoins() - cardCost);
+            }
+            else
+            {
+                getConditionsList().removeCompleteConditions();
+            }
         }
     }
 
@@ -304,18 +332,18 @@ public class Game
         }
     }
 
-    public void discardCardFromPlayer(Card card, Player player)
-    {
-        player.getDiscardPile().addCard(card);
-        player.getHand().removeCard(card);
-    }
-
-    public void discardCard(Card card)
-    {
-        discardCardFromPlayer(card, findCurrentPlayer());
-    }
-
     public void addCardToPlayer(String cardName, Player player) throws CardNotAvailableException
+    {
+        addCardToPileFromPlayer(cardName, player.getDiscardPile());
+        Card card = retrieveCard(cardName);
+        if (card.getType() == 2)
+        {
+            int amountToAdd = card.getAbilities()[0].getAmount();
+            player.addVictoryPoints(amountToAdd);
+        }
+    }
+
+    public void addCardToPileFromPlayer(String cardName, Deck pile) throws CardNotAvailableException
     {
         Card card = retrieveCard(cardName);
 
@@ -326,7 +354,7 @@ public class Game
             Card newCard = new Card(card);
             newCard.setAmount(1);
 
-            player.getDiscardPile().addCard(newCard);
+            pile.addCard(newCard);
         }
         else throw new CardNotAvailableException();
     }
@@ -365,7 +393,10 @@ public class Game
 
     private void makeHand(Player player)
     {
-        player.getHand().makeHand(player.getDeck(), player.getDiscardPile());
+        Deck deck = player.getDeck();
+        Deck hand = player.getHand();
+        Deck discardPile = player.getDiscardPile();
+        deck.makeHand(hand, discardPile);
     }
 
     private void cleanup()
@@ -376,7 +407,7 @@ public class Game
         {
             currentPlayer.getDiscardPile().addCard(cardsOnTable.get(i));
         }
-        cardsOnTable = new ArrayList<>();
+        cardsOnTable = new CopyOnWriteArrayList<>();
 
         ArrayList<Card> currentHand = currentPlayer.getHand().getCards();
 
@@ -386,6 +417,38 @@ public class Game
         }
 
         makeHand(currentPlayer);
+        checkIfGameIsOver();
+    }
+
+    public void moveCardsToDiscardPile(ArrayList<Card> fromPile)
+    {
+        moveCardsFromTo(fromPile, findCurrentPlayer().getDiscardPile().getCards());
+    }
+
+    public void moveCardsFromTo(ArrayList<Card> fromPile, ArrayList<Card> toPile)
+    {
+        for (int i = fromPile.size() - 1; i >= 0; i--)
+        {
+            Card cardToMove = fromPile.get(i);
+            moveThisCardFromTo(cardToMove, fromPile, toPile);
+        }
+    }
+
+
+    public void moveThisCardFromTo(Card thisCard, ArrayList<Card> fromPile, ArrayList<Card> toPile)
+    {
+        toPile.add(thisCard);
+        fromPile.remove(thisCard);
+    }
+
+    public void discardCardFromPlayer(Card card, Player player)
+    {
+        moveThisCardFromTo(card, player.getHand().getCards(), player.getDiscardPile().getCards());
+    }
+
+    public void discardCard(Card card)
+    {
+        discardCardFromPlayer(card, findCurrentPlayer());
     }
 
     public ArrayList<String> findBuyableCards()
@@ -405,7 +468,42 @@ public class Game
     public boolean isBuyable(Card card)
     {
         int money = findCurrentPlayer().getCoins();
-        return money >= card.getCost() && findCurrentPlayer().getBuys() > 0 && card.getAmount() > 0;
+        boolean hasEnoughMoney = money >= card.getCost();
+
+        boolean hasGainCardCondition = getConditionsList().hasConditionOfType(GainCardCondition.class);
+
+        if (hasGainCardCondition)
+        {
+            GainCardCondition condition = (GainCardCondition) getConditionsList().get(findCurrentPlayer());
+
+            hasEnoughMoney = card.getCost() <= condition.getCost();
+
+            if (condition.getType() != 0)
+            {
+                hasEnoughMoney = hasEnoughMoney && condition.getType() == card.getType();
+            }
+        }
+
+        return hasEnoughMoney && findCurrentPlayer().getBuys() > 0 && card.getAmount() > 0;
+    }
+
+    public void checkIfGameIsOver()
+    {
+        int emptyStacks = 0;
+        Card province = cards[10];
+        boolean provinceStackIsEmpty = province.getAmount() == 0;
+        for (Card card : cards)
+        {
+            if (card.getAmount() == 0)
+            {
+                emptyStacks += 1;
+            }
+        }
+        boolean threeStacksAreEmpty = (emptyStacks >= 3);
+        if (provinceStackIsEmpty || threeStacksAreEmpty)
+        {
+            isOver = true;
+        }
     }
 
     public boolean getIsOver()
@@ -433,7 +531,7 @@ public class Game
         currentPlayerIndex = index;
     }
 
-    public ArrayList<Card> getCardsOnTable()
+    public CopyOnWriteArrayList<Card> getCardsOnTable()
     {
         return cardsOnTable;
     }
@@ -446,5 +544,54 @@ public class Game
     public Player[] getPlayers()
     {
         return players;
+    }
+
+    private void setCardList(HashMap<String, Card> cardList)
+    {
+        this.cardList = cardList;
+    }
+
+    public Revealer getRevealer()
+    {
+        return revealer;
+    }
+
+    public ConditionList getConditionsList()
+    {
+        if (conditionsList.hasChanged() && conditionsList.size() == 0)
+        {
+            if (findCurrentPlayer().hasActionCards() && findCurrentPlayer().getActions() > 0)
+            {
+                setPhase(0);
+            }
+            else
+            {
+                setPhase(1);
+            }
+        }
+
+        return conditionsList;
+    }
+
+    public void addCondition(Condition condition)
+    {
+        conditionsList.add(condition);
+
+        boolean isGainCardCondition = getConditionsList().hasConditionOfType(GainCardCondition.class);
+
+        if (isGainCardCondition)
+        {
+            phase = 2;
+        }
+    }
+
+    public void setPhase(int phase)
+    {
+        this.phase = phase;
+
+        if (this.phase == 0 && !findCurrentPlayer().hasActionCards())
+        {
+            this.phase++;
+        }
     }
 }

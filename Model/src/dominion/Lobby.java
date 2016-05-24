@@ -12,27 +12,19 @@ public class Lobby
     private ArrayList<String> playersInLobby;
     private Game game;
     private String name;
-    private String cardSet;
+    private String[] kingdomCards;
     private HashMap<String, Card> cardList;
     private boolean started;
 
-    public Lobby(String playerName, String name, HashMap<String, Card> cardList)
+    public Lobby(String playerName, String name, String[] kingdomCards, HashMap<String, Card> cardList)
     {
-        this.name = name;
-        this.cardList = cardList;
-        this.started = false;
+        this.setName(name);
+        this.setCardList(cardList);
+        this.setStarted(false);
+        this.setKingdomCards(kingdomCards);
 
         playersInLobby = new ArrayList<>();
         playersInLobby.add(playerName);
-
-        cardSet = "first game";
-    }
-
-    public Lobby(String playerName, String name, String cardSet, HashMap<String, Card> cardList)
-    {
-        this(playerName, name, cardList);
-
-        this.cardSet = cardSet;
     }
 
     public void addPlayer(String playerName)
@@ -64,8 +56,8 @@ public class Lobby
     public void startGame()
     {
         String[] playerArray = playersInLobby.toArray(new String[playersInLobby.size()]);
-        game = new Game(playerArray, cardSet, cardList);
-        started = true;
+        this.setGame(new Game(playerArray, kingdomCards, cardList));
+        this.setStarted(true);
     }
 
     public Game getGame()
@@ -76,5 +68,35 @@ public class Lobby
     public boolean isStarted()
     {
         return started;
+    }
+
+    public ArrayList<String> getPlayersInLobby()
+    {
+        return playersInLobby;
+    }
+
+    private void setGame(Game game)
+    {
+        this.game = game;
+    }
+
+    private void setName(String name)
+    {
+        this.name = name;
+    }
+
+    private void setKingdomCards(String[] kingdomCards)
+    {
+        this.kingdomCards = kingdomCards;
+    }
+
+    private void setCardList(HashMap<String, Card> cardList)
+    {
+        this.cardList = cardList;
+    }
+
+    private void setStarted(boolean started)
+    {
+        this.started = started;
     }
 }

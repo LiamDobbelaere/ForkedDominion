@@ -1,12 +1,12 @@
 var timeOut = null;
 
-var ajaxGetCardsets = function() {
+var ajaxGetCardsets = function ()
+{
     $.ajax
         ({
             method: "GET",
             url: "server/gamemanager",
-            data:
-            {
+            data: {
                 command: "getcardsets"
             }
         })
@@ -18,13 +18,13 @@ var ajaxGetCardsets = function() {
         });
 };
 
-var ajaxCreateLobby = function () {
+var ajaxCreateLobby = function ()
+{
     $.ajax
         ({
             method: "GET",
             url: "server/gamemanager",
-            data:
-            {
+            data: {
                 command: "createlobby",
                 nickname: nickname,
                 lobbyname: lobbyname,
@@ -38,7 +38,8 @@ var ajaxCreateLobby = function () {
         });
 };
 
-var ajaxCheckLobbyReady = function () {
+var ajaxCheckLobbyReady = function ()
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -47,19 +48,31 @@ var ajaxCheckLobbyReady = function () {
                 lobbyname: lobbyname
             }
         })
-        .done(function (data) {
+        .done(function (data)
+        {
             var status = JSON.parse(data);
 
-            if (status) {
+            var players = status.players;
+
+            $("#player-list").empty();
+            for (var i = 0; i < players.length; i++)
+            {
+                $("#player-list").append(players[i] + "<br/>");
+            }
+
+            if (status.started)
+            {
                 setUpGame();
             }
-            else {
+            else
+            {
                 setTimeout(ajaxCheckLobbyReady, pollInterval);
             }
         });
 };
 
-var ajaxJoinLobby = function () {
+var ajaxJoinLobby = function ()
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -69,12 +82,30 @@ var ajaxJoinLobby = function () {
                 lobbyname: lobbyname
             }
         })
-        .done(function (data) {
-            setUpGame();
+        .done(function (data)
+        {
+            ajaxCheckLobbyReady();
         });
 };
 
-var ajaxRetrieveKingdomCards = function() {
+var ajaxStartGame = function ()
+{
+    $.ajax({
+            method: "GET",
+            url: "server/gamemanager",
+            data: {
+                command: "startgame",
+                lobbyname: lobbyname
+            }
+        })
+        .done(function (data)
+        {
+
+        });
+};
+
+var ajaxRetrieveKingdomCards = function ()
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -83,8 +114,12 @@ var ajaxRetrieveKingdomCards = function() {
                 lobbyname: lobbyname
             }
         })
-        .done(function (data) {
+        .done(function (data)
+        {
             var cards = JSON.parse(data);
+
+            kingdomCards = cards.kingdomCards;
+            fixedCards = cards.fixedCards;
 
             addKingdomCards(cards.kingdomCards);
             addFixedCards(cards.fixedCards);
@@ -93,7 +128,8 @@ var ajaxRetrieveKingdomCards = function() {
         });
 };
 
-var ajaxRetrieveBuyableCards = function() {
+var ajaxRetrieveBuyableCards = function ()
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -102,7 +138,8 @@ var ajaxRetrieveBuyableCards = function() {
                 lobbyname: lobbyname
             }
         })
-        .done(function (data) {
+        .done(function (data)
+        {
             var buyableCards = JSON.parse(data);
 
             for (var card in buyableCards)
@@ -114,7 +151,8 @@ var ajaxRetrieveBuyableCards = function() {
         });
 };
 
-var ajaxEndTurn = function() {
+var ajaxEndTurn = function ()
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -124,14 +162,33 @@ var ajaxEndTurn = function() {
                 nickname: nickname
             }
         })
-        .done(function (data) {
-            $("#end-turn").hide();
+        .done(function (data)
+        {
+            ajaxCheckGameStatus();
             clearBuyableCards();
             ajaxRetrieveHand();
         });
 };
 
-var ajaxCheckGameStatus = function () {
+var ajaxEndActions = function ()
+{
+    $.ajax({
+            method: "GET",
+            url: "server/gamemanager",
+            data: {
+                command: "endactions",
+                lobbyname: lobbyname,
+                nickname: nickname
+            }
+        })
+        .done(function (data)
+        {
+            ajaxCheckGameStatus();
+        });
+};
+
+var ajaxCheckGameStatus = function ()
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -141,54 +198,166 @@ var ajaxCheckGameStatus = function () {
                 lobbyname: lobbyname
             }
         })
-        .done(function (data) {
+        .done(function (data)
+        {
             var status = JSON.parse(data);
-
-            //First time we notice the phase is after-treasure mode
-
             phase = status.phase;
 
-            //Update kingdom cards in case of buy
-            if (!isMyTurn && (phase == 1 || phase == 3))
-            {
-                ajaxRetrieveBuyableCards();
-            }
+            //This information is shared for all players
+            //(Everyone sees the AB and C of the current player)
+            setTurnInfo("actions", status.actions);
+            setTurnInfo("buys", status.buys);
+            setTurnInfo("coins", status.coins);
+            setTurnInfo("victoryPoints", status.victoryPoints);
+
+            $("#current-player").find("strong.playername").text(status.currentPlayer);
 
             //This is the first time we notice it's our turn
             //So this can be seen as stuff to do on turn start
             if (!isMyTurn && status.isMyTurn)
             {
-                $("body").addClass("myturn");
-                $("#cardsComeCenter").empty();
-                $("#end-turn").show();
+                allowDiscard = false;
+                discardMultiple = false;
                 clearBuyableCards();
-                $("#hand").sortable("enable");
+                ajaxRetrieveBuyableCards();
+                $("#current-player").addClass("glow");
+                $("#cardsComeCenter").empty();
+                $("#handdecor").show();
             }
 
             isMyTurn = status.isMyTurn;
 
-            setTurnInfo("actions", status.actions);
-            setTurnInfo("buys", status.buys);
-            setTurnInfo("coins", status.coins);
+            var bEndActions = $("#end-actions");
+            var bEndTurn = $("#end-turn");
+            var bPlayTreasures = $("#play-treasures");
+            var bFinishDiscarding = $("#finish-discarding");
+            var gameWindow = $("#gamewindow");
 
-            if (!isMyTurn) {
+            if (isMyTurn)
+            {
+                //Why not just hide everything and just show
+                //what is necessary? Because it would cause flickering
+                //And there is no real way to know that a phase has
+                //ended except through the game status
+
+                //Don't show anything and hide everything if a condition is set
+                //essentially stopping game flow
+
+                if (status.conditionsActive)
+                {
+                    $("#hand").sortable("disable");
+
+                    bEndActions.hide();
+                    bEndTurn.hide();
+                    bPlayTreasures.hide();
+                }
+                else
+                {
+                    $("#hand").sortable("enable");
+
+                    switch (phase)
+                    {
+                        case 0:
+                            bEndActions.show();
+                            bEndTurn.hide();
+                            bPlayTreasures.hide();
+                            break;
+                        case 1:
+                            bEndActions.hide();
+                            bEndTurn.show();
+                            bPlayTreasures.show();
+                            break;
+                        case 2:
+                            bEndActions.hide();
+                            bEndTurn.show();
+                            bPlayTreasures.hide();
+                            if (status.buys == 0 || status.coins == 0)
+                            {
+                                endTurn();
+                            }
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                //console.log(status.myCondition);
+
+                if (phase == 1 || phase == 2)
+                {
+                    ajaxRetrieveBuyableCards()
+                }
+
+                //Get the cards that are on the table
+                //Not needed if it is actually our turn
                 var cardNames = [];
-                status.cardsOnTable.forEach(function (item) {
-                    cardNames.push(item.name);
+                status.cardsOnTable.forEach(function (item)
+                {
+                    cardNames.push(item);
                 });
                 createCardsOnTable(cardNames);
+            }
+            
+            if (status.myCondition != null)
+            {
+                console.log(status.myCondition.name);
+                
+                switch (status.myCondition.name)
+                {
+                    case "RemoveCardsCondition":
+                    case "RemodelCondition":
+                    case "MineCondition":
+                        var cardsToRemove = status.myCondition.condition.cardsToRemove;
 
-                $("body").removeClass("myturn");
-                $("#hand").sortable("disable");
+                        $("#handdecor").find("div.title").text("Remove " + cardsToRemove + " card" +
+                            ((cardsToRemove > 1) ? "s" : ""));
+                        allowDiscard = true;
+                        break;
+                    case "GainCardCondition":
+                        $("#handdecor").find("div.title").text("Buy a card");
+                        ajaxRetrieveBuyableCards();
+                        break;
+                    case "RemoveCardsThenAddCondition":
+                        $("#handdecor").find("div.title").text("Remove unwanted cards");
+                        allowDiscard = true;
+                        discardMultiple = true;
+                        bFinishDiscarding.show();
+                        break;
+                }
+            }
+            else
+            {
+                allowDiscard = false;
+                discardMultiple = false;
+                $("#handdecor").find("div.title").text("Your hand");
+                bFinishDiscarding.hide();
             }
 
+            //Keep calling this ajax unless it's our turn
             if (timeOut != null) clearTimeout(timeOut);
-            timeOut = setTimeout(ajaxCheckGameStatus, pollInterval);
+            if (!isMyTurn || status.conditionsActive) timeOut = setTimeout(ajaxCheckGameStatus, pollInterval);
+            
+            if (phase == 4)
+            {
+                bEndActions.hide();
+                bEndTurn.hide();
+                bPlayTreasures.hide();
+                gameWindow.hide();
+                $("#current-player").hide();
+                $("#cardsComeCenter").hide();
+                
+                var winner = status.winner;
+                
+                if (timeOut != null) {
+                    clearTimeout(timeOut);
+                }
+            }
         });
 };
 
 
-var ajaxRetrieveHand = function () {
+var ajaxRetrieveHand = function ()
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -198,21 +367,25 @@ var ajaxRetrieveHand = function () {
                 lobbyname: lobbyname
             }
         })
-        .done(function (data) {
+        .done(function (data)
+        {
             var cardArray = JSON.parse(data);
             var cardNames = [];
 
-            cardArray.forEach(function (item) {
+            cardArray.forEach(function (item)
+            {
                 cardNames.push(item.name);
             });
 
             $("#hand").show();
+            $("#handdecor").show();
 
             createHand(cardNames);
         });
 };
 
-var ajaxPutCardOnTable = function (cardname, callback) {
+var ajaxPutCardOnTable = function (cardname, callback)
+{
     $.ajax({
             method: "GET",
             url: "server/gamemanager",
@@ -223,25 +396,86 @@ var ajaxPutCardOnTable = function (cardname, callback) {
                 nickname: nickname
             }
         })
-        .done(function() {
+        .done(function ()
+        {
             if (typeof callback !== 'undefined') callback();
             ajaxCheckGameStatus();
         });
 };
 
-var ajaxBuyCard = function(cardname) {
+var ajaxPlayTreasures = function ()
+{
     $.ajax({
-        method: "GET",
-        url: "server/gamemanager",
-        data: {
-            command: "buycard",
-            cardname: cardname,
-            lobbyname: lobbyname,
-            nickname: nickname
-        }
-    })
-        .done(function() {
+            method: "GET",
+            url: "server/gamemanager",
+            data: {
+                command: "playtreasures",
+                lobbyname: lobbyname,
+                nickname: nickname
+            }
+        })
+        .done(function ()
+        {
             ajaxRetrieveBuyableCards();
+            ajaxCheckGameStatus();
+        });
+};
+
+var ajaxBuyCard = function (cardname)
+{
+    $.ajax({
+            method: "GET",
+            url: "server/gamemanager",
+            data: {
+                command: "buycard",
+                cardname: cardname,
+                lobbyname: lobbyname,
+                nickname: nickname
+            }
+        })
+        .done(function ()
+        {
+            ajaxRetrieveBuyableCards();
+            ajaxCheckGameStatus();
+        });
+};
+
+var ajaxDiscardCard = function (cardname)
+{
+    $.ajax({
+            method: "GET",
+            url: "server/gamemanager",
+            data: {
+                command: "discardcard",
+                cardname: cardname,
+                lobbyname: lobbyname,
+                nickname: nickname
+            }
+        })
+        .done(function ()
+        {
+            ajaxRetrieveHand();
+            ajaxCheckGameStatus();
+        });
+};
+
+var ajaxDiscardMultiple = function (cardlist)
+{
+    var list = cardlist.join(",");
+
+    $.ajax({
+            method: "GET",
+            url: "server/gamemanager",
+            data: {
+                command: "discardmultiple",
+                cardlist: list,
+                lobbyname: lobbyname,
+                nickname: nickname
+            }
+        })
+        .done(function ()
+        {
+            ajaxRetrieveHand();
             ajaxCheckGameStatus();
         });
 };

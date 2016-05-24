@@ -1,10 +1,5 @@
 package dominion;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import dominion.exceptions.CardNotAvailableException;
-
-import java.util.ArrayList;
-
 /**
  * Created by Sam on 23/03/2016.
  */
@@ -17,18 +12,49 @@ public class Player
     private int actions;
     private int buys;
     private int coins;
+    private int basicVictoryPoints;
+    private int dynamicVictoryPoints;
+    private int valueOfLastTrashedCard;
 
     public Player()
     {
-        actions = 1;
-        buys = 1;
-        coins = 0;
+        this.setActions(1);
+        this.setBuys(40);
+        this.setCoins(100);
+        this.setBasicVictoryPoints(0);
+        this.setDynamicVictoryPoints(0);
 
         discardPile = new Deck();
         deck = new Deck();
         hand = new Deck();
 
         //hand.makeHand(deck, discardPile);
+    }
+
+    public void addCards(int amount)
+    {
+        for (int i = 0; i < amount; i++)
+        {
+            if (discardPile.size() + deck.size() != 0)
+            {
+                deck.takeTopCard(hand, discardPile);
+            }
+        }
+    }
+
+    public void addActions(int amount)
+    {
+        actions += amount;
+    }
+
+    public void addBuys(int amount)
+    {
+        buys += amount;
+    }
+
+    public void addCoins(int amount)
+    {
+        coins += amount;
     }
 
     public void setName(String name)
@@ -94,5 +120,45 @@ public class Player
     public boolean isMyTurn(String nickname)
     {
         return this.name.equals(nickname);
+    }
+
+    public void setBasicVictoryPoints(int basicVictoryPoints)
+    {
+        this.basicVictoryPoints = basicVictoryPoints;
+    }
+
+    public int getBasicVictoryPoints()
+    {
+        return basicVictoryPoints;
+    }
+
+    public void addVictoryPoints(int amount)
+    {
+        this.setBasicVictoryPoints(getBasicVictoryPoints() + amount);
+    }
+
+    public int getValueOfLastTrashedCard()
+    {
+        return valueOfLastTrashedCard;
+    }
+
+    public void setValueOfLastTrashedCard(int valueOfLastTrashedCard)
+    {
+        this.valueOfLastTrashedCard = valueOfLastTrashedCard;
+    }
+
+    public int getDynamicVictoryPoints()
+    {
+        return dynamicVictoryPoints;
+    }
+
+    public void setDynamicVictoryPoints(int dynamicVictoryPoints)
+    {
+        this.dynamicVictoryPoints = dynamicVictoryPoints;
+    }
+
+    public int getTotalVictoryPoints()
+    {
+        return this.basicVictoryPoints + this.dynamicVictoryPoints;
     }
 }

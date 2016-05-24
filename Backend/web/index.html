@@ -15,206 +15,168 @@
 </head>
 
 <body>
+<!--<div id="dialog-confirm" title="Empty the recycle bin?">
+    <p><strong class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></strong>Did you know you can press 'CTRL + C' to enable/disable chat?</p>
 
-<div id="card-info" class="hidden unselectable">
-    <img src="images/cards/cellar.jpg"/>
 </div>
+-->
 
-<div id="chat" class="visible">
+<div id="imgVis"></div>
+<figure id="card-info" class="hidden unselectable">
+    <img alt="cellar" src="images/cards/cellar.jpg"/>
+</figure>
+
+<button id="end-actions" style="display: none;">End Actions</button>
+<button id="end-turn" style="display: none;">End Turn</button>
+<button id="play-treasures" style="display: none;">Play Treasures</button>
+<button id="finish-discarding" style="display: none;">Finish Discarding</button>
+
+<aside id="current-player" style="display: none;">
+    Current player:
+    <strong class="playername"></strong>
+</aside>
+
+<aside id="chat" class="visible">
+
+    <div id="imgChat" data-toggle="popover" title="Press 'ALT + C' to enable/disable chat" data-content=""></div>
+
     <ul class="message-list">
 
     </ul>
     <div class="compose-message">
+
         <label for="chat-message">Chat:</label>
-        <input type="text" id="chat-message" class="chat-message"/>
+
+        <input type="text" id="chat-message" class="form-control"/>
+
+
     </div>
-</div>
 
-<div class="site-wrapper">
+</aside>
+
+
+<main>
     <div class="site-wrapper-inner">
-        <div class="cover-container">
+        <header class="clearfix">
+            <h3>Dominion</h3>
+            <nav>
+                <ul>
+                    <li class="active home"><a href="index.html">Home</a></li>
+                    <li class="register"><a href="register.html">Register</a></li>
+                    <li class="login"><a href="#">Login</a></li>
+                    <li class="about"><a href="#">About</a></li>
+                    <li class="contact"><a href="#">Contact</a></li>
+                </ul>
+            </nav>
+        </header>
 
-            <div class="masthead clearfix">
-                <div class="inner">
-                    <h3 class="masthead-brand">Dominion</h3>
-                    <nav>
-                        <ul class="nav masthead-nav">
-                            <li class="active home"><a href="#">Home</a></li>
-                            <li class="register"><a href="#">Register</a></li>
-                            <li class="login"><a href="#">Login</a></li>
-                            <li class="about"><a href="#">About</a></li>
-                            <li class="contact"><a href="#">Contact</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
+        <section class="cf inner unselectable" id="gamewindow" style="display: none;">
 
-            <div class="cf inner unselectable" id="gamewindow" style="display: none;">
+            <article id="kingdomwrapper">
+                <div class="corner-topleft"></div>
+                <div class="title borderedtitle">Kingdom cards</div>
+                <div class="corner-topright"></div>
+
                 <div id="kingdomcards">
                     <ul>
 
                     </ul>
                 </div>
+            </article>
 
-                <div id="player-turninfo">
-                    <div class="info-sub" id="turn-actions"><span class="info">0</span>Actions</div>
-                    <div class="info-sub" id="turn-buys"><span class="info">0</span>Buys</div>
-                    <div class="info-sub" id="turn-coins"><span class="info">0</span>Coins</div>
+            <article id="player-turninfo">
+                <p class="info-sub" id="turn-actions"><strong class="info">0</strong>Actions</p>
+                <p class="info-sub" id="turn-buys"><strong class="info">0</strong>Buys</p>
+                <p class="info-sub" id="turn-coins"><strong class="info">0</strong>Coins</p>
+                <p class="info-sub" id="turn-victoryPoints"><strong class="info">0</strong>VP</p>
+            </article>
+
+            <article id="handwrapper">
+                <div id="handdecor">
+                    <div class="corner-topleft"></div>
+                    <div class="borderedtitle title">Your hand</div>
+                    <div class="corner-topright"></div>
+
+                    <ul id="hand"></ul>
                 </div>
+            </article>
 
-                <ul id="hand"></ul>
+            <div class="title topcoins-title">Treasure</div>
+            <ul class="topcoins" id="coins"></ul>
 
-                <ul class="topcoins" id="coins"></ul>
+            <div class="title topstates-title">States</div>
+            <ul class="topprov" id="topstates"></ul>
 
-                <ul class="topprov" id="topstates"></ul>
+        </section>
 
-                <button id="end-turn">End turn</button>
+        <form class="cf inner" id="enternickname" style="display: none;">
+            <div class="form-group">
+                <label for="nickname">Nickname: </label>
+                <input type="text" class="form-control" id="nickname"/>
             </div>
 
-            <div class="cf inner" id="enternickname" style="display: none;">
-                <p>
-                    <label for="nickname">Nickname: </label>
-                    <input type="text" class="nickname" id="nickname"/>
-                </p>
-
-                <p>
-                    <label for="lobbyname">Lobby name: </label>
-                    <input type="text" class="lobbyname" id="lobbyname"/>
-                </p>
-                <p>
-                    <label for="cardset">Card set:</label>
-                    <select name="cardset" id="cardset">
-                        <option>Loading...</option>
-                    </select>
-                </p>
-
-                <a href="#" id="createlobby">Create lobby</a>
-                <a href="#" id="joinlobby">Join lobby</a>
+            <div class="form-group">
+                <label for="lobbyname">Lobby name: </label>
+                <input type="text" class="form-control" id="lobbyname"/>
             </div>
 
-            <ul id="cardsComeCenter" style="display: none;"></ul>
-
-            <div class="inner cover cf" id="menu">
-                <h1 class="cover-heading">Become the master of cards!</h1>
-
-                <ul>
-                    <li>
-                        <a href="#" class="btn btn-lg btn-default" id="play"><span class="eerste"></span>Play</a>
-                    </li>
-                    <li>
-                        <a href="#" class="btn btn-lg btn-default" id="highscores"><span class="tweede"></span>Highscores</a>
-                    </li>
-                    <li>
-                        <a href="#" class="btn btn-lg btn-default" id="settings"><span class="derde"></span>Settings</a>
-                    </li>
-                </ul>
+            <div class="form-group">
+                <label for="cardset">Card set:</label>
+                <select name="cardset" id="cardset">
+                    <option>Loading...</option>
+                </select>
             </div>
 
-            <!--<div class="forms" id="form">
-                <form method = "post" action="#">
-                    <fieldset id="fieldset1">
-                        <legend>Please fill in the form.</legend>
+            <a href="#" id="createlobby">Create lobby</a>
+            <a href="#" id="joinlobby">Join lobby</a>
+        </form>
 
-                        <input type='hidden' name='submitted' id='submitted' value='1'/>
+        <aside class="cf inner" id="lobbyroom" style="display: none;">
+            <h1 id="lobby-name">Lobby-name</h1>
+            <article id="player-list">
 
-                        <label for='name' >Your First Name <span>*</span>: </label>
-                        <input type='text' name='firstname' id='firstname' maxlength="50" />
+            </article>
+            <a href="#" id="startgame">Start game</a>
+        </aside>
 
-                        <label for='name' >Your Last Name <span>*</span>: </label>
-                        <input type='text' name='lastname' id='lastname' maxlength="50" />
+        <ul id="cardsComeCenter" style="display: none;"></ul>
 
-                        <label for='email' >Email Address<span>*</span>:</label>
-                        <input type='text' name='email' id='email' maxlength="50" />
+        <section class="inner cover cf" id="menu">
+            <h1 class="cover-heading">Become the master of cards!</h1>
 
-                      <!--  <label for="sex">Gender:</label>
-                        <input type="checkbox" name="sex" value="Man">Man<br>
-                        <input type="checkbox" name="sex" value="Female">Female<br>
+            <ul>
+                <li>
+                    <a href="#" class="btn btn-lg btn-default" id="play"><strong class="eerste"></strong>Play</a>
+                </li>
+                <li>
+                    <a href="#" class="btn btn-lg btn-default" id="highscores"><strong
+                            class="tweede"></strong>Highscores</a>
+                </li>
+                <li>
+                    <a href="#" class="btn btn-lg btn-default" id="settings"><strong class="derde"></strong>Settings</a>
+                </li>
+            </ul>
+        </section>
 
-                        <label for='username' >Username<span>*</span>:</label>
-                        <input type='text' name='username' id='username' maxlength="50" />
-
-                        <label for='password' >Password<span>*</span>:</label>
-                        <input type='password' name='password' id='password' maxlength="50" />
-
-                        <input type='submit' name='Submit' value='Submit' />
-
-
-                    </fieldset>
-            </form>
-            -->
-
-            <form id="form" style="display: none;">
-                <fieldset>
-                    <legend>Become the master of cards!</legend>
-                    <div class="form-group"> <!-- Full Name -->
-                        <label for="full_name_id" class="control-label">Full Name<span>*</span></label>
-                        <input type="text" class="form-control" id="full_name_id" name="full_name"
-                               placeholder="Your full name">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="emailInput" class="control-label">E-mail<span>*</span></label>
-                        <input type="email" class="form-control" id="email" name="emailInput"
-                               placeholder="E-mail address">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="usernamePlayer" class="usernamePlayer">Username<span>*</span></label>
-                        <input type="text" class="form-control" id="username" name="usernamePlayer"
-                               placeholder="Username">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="passwordPlayer" class="passwordPlayer">Password<span>*</span></label>
-                        <input type="password" class="form-control" id="password" name="passwordPlayer"
-                               placeholder="Password">
-                    </div>
-
-
-                    <div class="form-group"> <!-- City-->
-                        <label for="city_id" class="control-label">City<span>*</span></label>
-                        <input type="text" class="form-control" id="city_id" name="city" placeholder="Brugge">
-                    </div>
-
-                    <div class="form-group"> <!-- State Button -->
-                        <label for="state_id" class="control-label">State<span>*</span></label>
-                    </div>
-
-                    <div class="form-group"> <!-- Zip Code-->
-                        <label for="zip_id" class="control-label">Zip Code<span>*</span></label>
-                        <input type="text" class="form-control" id="zip_id" name="zip" placeholder="#####">
-                    </div>
-
-                    <div class="form-group"> <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary">Register!</button>
-                    </div>
-                </fieldset>
-            </form>
-
-        </div>
-
-        <div class="mastfoot">
+        <footer>
             <p>© Copyright 2016 Making Fun, Inc. Rewritten and published by Howest students for educational
                 purposes.</p>
-
-            <!--<div class="inner">
-
-            </div>-->
-        </div>
-
+        </footer>
     </div>
-
-</div>
+</main>
 
 <div class="modal"></div>
 
 <script type="text/javascript" src="assets/js/jquery-2.1.4.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-ui-touchpunch.js"></script>
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="assets/js/socket.io.js"></script>
 <script type="text/javascript" src="assets/js/chat-client.js"></script>
 <script type="text/javascript" src="assets/js/ajax.js"></script>
 <script type="text/javascript" src="assets/js/script.js"></script>
+
+<!--<script type="text/javascript" src="assets/js/test.js"></script>-->
 
 </body>
 </html>

@@ -3,10 +3,16 @@ package dominion.tests;
 import dominion.*;
 
 import dominion.exceptions.CardNotAvailableException;
+import dominion.util.GainCardCondition;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Arrays;
+
+import static org.junit.Assert.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 
 /**
  * Created by Sam on 12/05/2016.
@@ -44,7 +50,23 @@ public class GameTest
     @Test
     public void testAdvancePhase()
     {
+        assert(game.getPhase() == 1);
+
+        game.playTreasures();
+
+        assert(game.getPhase() == 2);
+
+        try
+        {
+            game.buyCard("copper");
+        }
+        catch (CardNotAvailableException ex)
+        {
+
+        }
+
         game.advancePhase();
+
         assert (game.findCurrentPlayer().getName().equals(accountTwo));
     }
 
@@ -139,11 +161,99 @@ public class GameTest
         assert(currentPlayer.getHand().findCard("moat") == null);
     }
 
-    @Test
+    /*@Test
     public void testCardsetFromDatabase()
     {
-        game = new Game(accounts, "first game", testHelper.getTestCardList());
+        game = new Game(accounts, "first game", testHelper.getDefaultKingdomCards(), testHelper.getTestCardList());
 
         assert(game.retrieveCard("mine") != null);
+    }*/
+
+    @Test
+    public void testMoveThisCardFromTo()
+    {
+        Card testCard = new Card("testCard", 0, 0, 0, null);
+        Deck discardPile = game.findCurrentPlayer().getDiscardPile();
+        ArrayList<Card> randomList = new ArrayList<>();
+        randomList.add(testCard);
+        boolean cardIsInRandomListFirst = randomList.contains(testCard);
+        boolean cardDidNotStartInDiscardPile = !discardPile.getCards().contains(testCard);
+        game.moveThisCardFromTo(testCard, randomList, discardPile.getCards());
+        boolean cardLeftRandomList = !randomList.contains(testCard);
+        boolean cardWentToDiscard = discardPile.getCards().contains(testCard);
+
+        assert (cardIsInRandomListFirst && cardDidNotStartInDiscardPile && cardLeftRandomList && cardWentToDiscard);
+    }
+
+    @Test
+    public void testGainCardCondition()
+    {
+        try
+        {
+            game.addCard("workshop");
+        }
+        catch (CardNotAvailableException e)
+        {
+            e.printStackTrace();
+        }
+        game.setPhase(0);
+
+        game.findCurrentPlayer().setCoins(20);
+
+        GainCardCondition newCondition = new GainCardCondition(game.findCurrentPlayer(), game, 2);
+        Card testCard = new Card("testCard", 3, 8, 1, null);
+
+        assertTrue(game.isBuyable(testCard));
+
+        game.addCondition(newCondition);
+
+        assertFalse(game.isBuyable(testCard));
+        assert(game.getPhase() == 2);
+        assert(game.isBuyable(game.retrieveCard("moat")));
+
+        try
+        {
+            game.buyCard("moat");
+        }
+        catch (CardNotAvailableException e)
+        {
+            e.printStackTrace();
+        }
+
+        assert(game.findCurrentPlayer().getDiscardPile().findCard("moat") != null);
+        assert(game.getConditionsList().size() == 0);
+        assert(game.getPhase() == 1);
+    }
+
+    @Test
+    public void TestWorkshop()
+    {
+        game.findCurrentPlayer().getHand().addCard(game.retrieveCard("workshop"));
+        game.findCurrentPlayer().setCoins(20);
+        game.setPhase(0);
+
+        try
+        {
+            game.playCard("workshop");
+        }
+        catch (CardNotAvailableException e)
+        {
+            e.printStackTrace();
+        }
+
+        assertTrue(game.getPhase() == 2);
+        assertFalse(game.isBuyable(game.retrieveCard("market")));
+        assertTrue(game.isBuyable(game.retrieveCard("smithy")));
+
+        try
+        {
+            game.buyCard("smithy");
+        }
+        catch (CardNotAvailableException e)
+        {
+            e.printStackTrace();
+        }
+
+        assertTrue(game.getPhase() == 1);
     }
 }

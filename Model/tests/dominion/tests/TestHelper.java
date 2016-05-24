@@ -39,7 +39,7 @@ public class TestHelper
 
         testCardList.put("adventurer", new Card("adventurer", 3, 6, 0, new Ability[] {}));
         testCardList.put("bureaucrat", new Card("bureaucrat", 4, 4, 0, new Ability[] {}));
-        testCardList.put("cellar", new Card("cellar", 3, 2, 0, new Ability[] {new Ability(1, 1), new Ability(6, -1), new Ability(8, 1)}));
+        testCardList.put("cellar", new Card("cellar", 3, 2, 0, new Ability[] {new Ability(1, 1), new Ability(15, -1)}));
         testCardList.put("chancellor", new Card("chancellor", 3, 3, 0, new Ability[] {}));
         testCardList.put("chapel", new Card("chapel", 3, 2, 0, new Ability[] {new Ability(5, 4)}));
         testCardList.put("copper", new Card("copper", 1, 0, 0, new Ability[] {new Ability(3, 1)}));
@@ -68,7 +68,7 @@ public class TestHelper
         testCardList.put("village", new Card("village", 3, 3, 0, new Ability[] {new Ability(1, 2), new Ability(4, 1)}));
         testCardList.put("witch", new Card("witch", 4, 4, 0, new Ability[] {new Ability(4, 2), new Ability(9, 0)}));
         testCardList.put("woodcutter", new Card("woodcutter", 3, 3, 0, new Ability[] {new Ability(2, 1), new Ability(3, 2)}));
-        testCardList.put("workshop", new Card("workshop", 3, 3, 0, new Ability[] {}));
+        testCardList.put("workshop", new Card("workshop", 3, 3, 0, new Ability[] {new Ability(9, 4)}));
     }
 
     public void printArrayStatements()
